@@ -1,0 +1,73 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# uv
+.uv/
+
+# ── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+.pnpm-store/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+*.env.local
+*.env.production
+*.env.staging
+!.env.example
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+# (Dockerignore tracked in git)
+
+# ── Data & cache ──────────────────────────────────────────────────────────────
+data/
+*.pkl
+*.csv
+*.parquet
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+playwright-report/
+test-results/
+
+# ── Docs build ────────────────────────────────────────────────────────────────
+docs/_build/
+site/
+
+
+Tangent_Project_Report.pdf
+Tangent_Project_Report.docx
+Tangent_Portfolio_Presentation.pptx
+~$*
+TANGENT_STUDY_GUIDE.*
+Keys_Tangent.txt

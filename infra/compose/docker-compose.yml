@@ -1,0 +1,271 @@
+name: tangent
+
+networks:
+  tangent-net:
+    driver: bridge
+
+volumes:
+  tangent_pgdata:
+  tangent_redisdata:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tangent-postgres
+    restart: unless-stopped
+    profiles:
+      - core
+      - full
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-tangent}
+    ports:
+      - "5432:5432"
+    volumes:
+      - tangent_pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tangent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - tangent-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: tangent-redis
+    restart: unless-stopped
+    profiles:
+      - core
+      - full
+    ports:
+      - "6379:6379"
+    volumes:
+      - tangent_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - tangent-net
+
+  market-data:
+    build:
+      context: ../..
+      dockerfile: services/market-data/Dockerfile
+    container_name: tangent-market-data
+    restart: unless-stopped
+    profiles:
+      - core
+      - full
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tangent}
+      REDIS_URL: redis://redis:6379/0
+      DEMO_MODE: ${DEMO_MODE:-false}
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tangent-net
+
+  quant:
+    build:
+      context: ../..
+      dockerfile: services/quant/Dockerfile
+    container_name: tangent-quant
+    restart: unless-stopped
+    profiles:
+      - core
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+    ports:
+      - "8002:8002"
+    networks:
+      - tangent-net
+
+  portfolio:
+    build:
+      context: ../..
+      dockerfile: services/portfolio/Dockerfile
+    container_name: tangent-portfolio
+    restart: unless-stopped
+    profiles:
+      - core
+      - full
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-tangent}
+      DEMO_MODE: ${DEMO_MODE:-false}
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tangent-net
+
+  sentiment:
+    build:
+      context: ../..
+      dockerfile: services/sentiment/Dockerfile
+    container_name: tangent-sentiment
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8004:8004"
+    networks:
+      - tangent-net
+
+  agent:
+    build:
+      context: ../..
+      dockerfile: services/agent/Dockerfile
+    container_name: tangent-agent
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      MARKET_DATA_URL: http://market-data:8001
+      QUANT_URL: http://quant:8002
+      SENTIMENT_URL: http://sentiment:8004
+    ports:
+      - "8005:8005"
+    depends_on:
+      - market-data
+      - quant
+      - sentiment
+    networks:
+      - tangent-net
+
+  gateway:
+    build:
+      context: ../..
+      dockerfile: services/gateway/Dockerfile
+    container_name: tangent-gateway
+    restart: unless-stopped
+    profiles:
+      - core
+      - full
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-tangent-production-super-secret-key-change-me}
+      JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-1440}
+      MARKET_DATA_URL: http://market-data:8001
+      QUANT_URL: http://quant:8002
+      PORTFOLIO_URL: http://portfolio:8003
+      SENTIMENT_URL: http://sentiment:8004
+      AGENT_URL: http://agent:8005
+      PERSONA_MACRO_URL: http://persona-macro:8011
+      PERSONA_GROWTH_URL: http://persona-growth:8012
+      PERSONA_RISK_URL: http://persona-risk:8013
+      OBSERVATORY_URL: http://observatory:8014
+    ports:
+      - "8000:8000"
+    depends_on:
+      - market-data
+      - quant
+      - portfolio
+    networks:
+      - tangent-net
+
+  persona-macro:
+    build:
+      context: ../..
+      dockerfile: services/persona-macro/Dockerfile
+    container_name: tangent-persona-macro
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8011:8011"
+    networks:
+      - tangent-net
+
+  persona-growth:
+    build:
+      context: ../..
+      dockerfile: services/persona-growth/Dockerfile
+    container_name: tangent-persona-growth
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8012:8012"
+    networks:
+      - tangent-net
+
+  persona-risk:
+    build:
+      context: ../..
+      dockerfile: services/persona-risk/Dockerfile
+    container_name: tangent-persona-risk
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8013:8013"
+    networks:
+      - tangent-net
+
+  observatory:
+    build:
+      context: ../..
+      dockerfile: services/observatory/Dockerfile
+    container_name: tangent-observatory
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      DEMO_MODE: ${DEMO_MODE:-false}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8014:8014"
+    networks:
+      - tangent-net
+
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile
+    container_name: tangent-web
+    restart: unless-stopped
+    profiles:
+      - full
+    environment:
+      NEXT_PUBLIC_GATEWAY_URL: http://gateway:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
+    networks:
+      - tangent-net
