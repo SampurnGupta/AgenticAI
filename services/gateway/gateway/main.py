@@ -252,6 +252,11 @@ def create_app() -> FastAPI:
         target = f"{settings.agent_url}/api/v1/agent/chat"
         return await forward_request(http_client, target, request)
 
+    @app.post("/api/v1/agent/committee/debate", tags=["agent"])
+    async def proxy_committee_debate(request: Request) -> Response:
+        target = f"{settings.agent_url}/api/v1/agent/committee/debate"
+        return await forward_request(http_client, target, request)
+
     # Proxy: Independent Personas (MacroBot, GrowthBot, RiskBot)
     @app.api_route(
         "/api/v1/personas/macro/{path:path}",

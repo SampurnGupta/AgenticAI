@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Path, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from agent.committee.coordinator import CommitteeCoordinator
 from agent.orchestrator import DecisionStudioOrchestrator
 
 settings = BaseAppSettings(service_name="tangent-agent")
@@ -23,6 +24,7 @@ setup_logging(
 logger = get_logger(settings.service_name)
 
 orchestrator = DecisionStudioOrchestrator()
+coordinator = CommitteeCoordinator()
 # In-memory run cache
 completed_runs: dict[str, dict[str, Any]] = {}
 
@@ -140,6 +142,14 @@ def create_app() -> FastAPI:
                 "X-Accel-Buffering": "no",
             },
         )
+
+    @app.post("/api/v1/agent/committee/debate", tags=["committee"])
+    async def run_committee_debate(payload: dict[str, Any]) -> dict[str, Any]:
+        """Execute the standardized CrewAI + Google ADK Investment Committee deliberation."""
+        query = str(payload.get("query", "")).strip()
+        if not query:
+            raise HTTPException(status_code=400, detail="Query cannot be empty")
+        return await coordinator.deliberate(query=query, context=payload)
 
     return app
 

@@ -378,6 +378,33 @@ CRITICAL RULES:
 2. Absolutely NO markdown bold asterisks (**) or (*) in any strings.
 3. Output ONLY raw JSON.`;
 
+    // 0. Try Backend CrewAI + Google ADK Committee Service via Gateway
+    const GATEWAY_URL = process.env.GATEWAY_URL || "http://localhost:8000";
+    try {
+      const committeeRes = await fetch(`${GATEWAY_URL}/api/v1/agent/committee/debate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: cleanQuery,
+          investor_profile,
+          horizon,
+          capital,
+          weights,
+          selectedTickers,
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (committeeRes.ok) {
+        const data = await committeeRes.json();
+        if (data.debateTurns?.length === 5 && data.debateConclusion) {
+          return NextResponse.json(cleanDebateData(data));
+        }
+      }
+    } catch (backendErr) {
+      console.warn("Backend CrewAI+ADK committee failed, falling back to edge router:", backendErr);
+    }
+
     // 1. Try Groq (Llama 3.3 70B / Qwen) for lightning-fast structured generation
     if (GROQ_API_KEY) {
       try {

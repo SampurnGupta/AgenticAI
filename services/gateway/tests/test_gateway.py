@@ -106,3 +106,6 @@ async def test_gateway_proxy_routing():
 
         a_resp = await ac.post("/api/v1/agent/runs", json={"ticker": "RELIANCE.NS"})
         assert a_resp.status_code == 503
+
+        c_resp = await ac.post("/api/v1/agent/committee/debate", json={"query": "RELIANCE.NS"})
+        assert c_resp.status_code == 503

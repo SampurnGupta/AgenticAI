@@ -8,10 +8,14 @@ dependencies = [
     "tangent-common",
     "tangent-contracts",
     "tangent-llm",
-    "fastapi>=0.111.0",
-    "uvicorn[standard]>=0.29.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.9.0",
     "httpx>=0.27.0",
-    "pydantic>=2.7.0",
+    "crewai>=0.100.0",
+    "crewai-tools>=0.30.0",
+    "google-genai>=1.0.0",
+    "redis>=5.0.0",
 ]
 
 [build-system]
