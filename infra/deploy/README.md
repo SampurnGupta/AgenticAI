@@ -76,7 +76,7 @@ fly ssh console -a tangent-portfolio -C "alembic -c infra/db/alembic.ini upgrade
 ## Alternative Hosting Options
 
 - **Render (`render.committee.yaml` for the CrewAI + Google ADK Fleet)**:
-  Deploy the renamed microservices (`tangent-committee-gateway`, `tangent-committee-agent`, `tangent-committee-quant`, `tangent-committee-market-data`, `tangent-committee-observatory`, `tangent-committee-macro`, `tangent-committee-growth`, `tangent-committee-risk`) independently from the original `tangent-*` deployment using `infra/deploy/render.committee.yaml`.
-- **Vercel (Frontend)**: Deploy `apps/web` with `GATEWAY_URL` pointing to `https://tangent-committee-gateway.onrender.com`.
-- **Upstash Redis & Supabase/Neon PostgreSQL**: Provision dedicated Redis and Postgres instances so telemetry (`tangent:telemetry:committee:*`) remains isolated from the original Tangent production environment.
+  Deploys **only** the new/updated renamed microservices (`tangent-committee-gateway` and `tangent-committee-agent`) while routing to your existing frozen/unchanged services (`tangent-persona-macro`, `tangent-persona-growth`, `tangent-persona-risk`, `tangent-observatory`, `quant`, `market-data`, `portfolio`, `sentiment`) without redeploying them.
+- **Vercel (Frontend)**: Deploy `apps/web` as a new project (e.g., `tangent-committee-web`) with `GATEWAY_URL` pointing to `https://tangent-committee-gateway.onrender.com`.
+- **Upstash Redis**: Provision a dedicated new Redis database (e.g., `tangent-committee-redis`) so committee telemetry (`tangent:telemetry:committee:*`) remains isolated from the original Tangent production environment.
 - **AWS ECS / DigitalOcean App Platform**: Deploy images built from the multi-stage Dockerfiles.
