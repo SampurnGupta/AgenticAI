@@ -6,7 +6,8 @@ const DEFAULT_TARGETS = [
   "https://tangent-persona-macro.onrender.com/health",
   "https://tangent-persona-growth.onrender.com/health",
   "https://tangent-persona-risk.onrender.com/health",
-  "https://tangent-gateway.onrender.com/health",
+  "https://tangent-committee-gateway.onrender.com/health",
+  "https://tangent-committee-agent.onrender.com/health",
 ];
 
 export async function GET() {
@@ -22,6 +23,7 @@ export async function GET() {
     process.env.PERSONA_RISK_URL && `${sanitize(process.env.PERSONA_RISK_URL)}/health`,
     process.env.GATEWAY_URL && `${sanitize(process.env.GATEWAY_URL)}/health`,
     process.env.NEXT_PUBLIC_GATEWAY_URL && `${sanitize(process.env.NEXT_PUBLIC_GATEWAY_URL)}/health`,
+    process.env.AGENT_URL && `${sanitize(process.env.AGENT_URL)}/health`,
   ].filter(Boolean) as string[];
 
   const allTargets = Array.from(new Set([...DEFAULT_TARGETS, ...envTargets])).map((u) => u.trim());

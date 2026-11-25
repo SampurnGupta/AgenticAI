@@ -1,0 +1,27 @@
+name: Keep Render Microservices Warm
+
+on:
+  schedule:
+    # Ping every 10 minutes to prevent Render Free Tier containers from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  warmup:
+    name: Dispatch Health & Warmup Pings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Vercel Warmup & Render Committee Services
+        run: |
+          for url in \
+            "https://agentic-ai-rose-five.vercel.app/api/warmup" \
+            "https://tangent-committee-gateway.onrender.com/health" \
+            "https://tangent-committee-agent.onrender.com/health" \
+            "https://tangent-observatory.onrender.com/health" \
+            "https://tangent-persona-macro.onrender.com/health" \
+            "https://tangent-persona-growth.onrender.com/health" \
+            "https://tangent-persona-risk.onrender.com/health"
+          do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$url" || echo "000")
+            echo "GET $url -> HTTP $code"
+          done

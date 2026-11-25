@@ -65,7 +65,9 @@ def create_app() -> FastAPI:
     metrics.set_custom_metric("debates_orchestrated", 0)
     metrics.set_custom_metric("critic_verifications", 0)
 
-    @app.get("/health", status_code=status.HTTP_200_OK, tags=["monitoring"])
+    @app.api_route(
+        "/health", methods=["GET", "HEAD"], status_code=status.HTTP_200_OK, tags=["monitoring"]
+    )
     async def health() -> dict[str, Any]:
         return {"status": "ok", "service": settings.service_name}
 
