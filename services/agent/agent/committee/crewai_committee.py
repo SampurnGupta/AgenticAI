@@ -8,6 +8,12 @@ from pydantic import BaseModel
 from agent.committee.mcp_tools import market_mcp_tool, quant_mcp_tool
 
 
+class CrewTurnSchema(BaseModel):
+    headline: str
+    argument: str
+    verifiableData: str
+
+
 class DebateConclusionSchema(BaseModel):
     consensusVerdict: str
     verdictTone: str
@@ -16,7 +22,18 @@ class DebateConclusionSchema(BaseModel):
     actionableConsensus: list[str]
 
 
-def build_crewai_committee(gemini_api_key: str = ""):
+class CommitteeCrewOutputSchema(BaseModel):
+    valuation: CrewTurnSchema
+    growth: CrewTurnSchema
+    risk: CrewTurnSchema
+    arbiter: CrewTurnSchema
+    debateConclusion: DebateConclusionSchema
+
+
+def build_crewai_committee(
+    gemini_api_key: str = "",
+) -> tuple[Agent, Agent, Agent, Agent, LLM]:
+    """Construct the 4 CrewAI committee agents (Valuation, Growth, Risk, Arbiter)."""
     key = gemini_api_key or os.getenv("GEMINI_API_KEY", "mock-key")
     llm = LLM(
         model="gemini/gemini-2.0-flash",

@@ -53,7 +53,7 @@ Tangent/
 │   ├── quant/                 # Port 8002 — SLSQP Max-Sharpe, Ledoit-Wolf shrinkage, Monte Carlo, walk-forward
 │   ├── portfolio/             # Port 8003 — Postgres persistence for user portfolios, allocations & exports
 │   ├── sentiment/             # Port 8004 — Zero-key RSS financial news ingest & FinBERT lexicon scoring
-│   ├── agent/                 # Port 8005 — EvidencePack builder ([E1]–[E9]), Bull/Bear/Synthesizer, Critic, SSE
+│   ├── agent/                 # Port 8005 — Standardized CrewAI + Google ADK Investment Committee, EvidencePack, Critic, SSE
 │   ├── persona-macro/         # Port 8006 — Independent MacroBot powered by Google Gemini 2.0 Flash
 │   ├── persona-growth/        # Port 8007 — Independent GrowthBot powered by Groq Llama 3.3 70B
 │   ├── persona-risk/          # Port 8008 — Independent RiskBot powered by Cloudflare Workers AI Llama 3.2 3B
@@ -64,16 +64,18 @@ Tangent/
 │   ├── common/                # Structured JSON logging, settings config, resilient HTTP, Redis client
 │   └── llm/                   # LiteLLM client wrapper with automatic provider fallback & fixtures
 │
+├── scripts/
+│   └── benchmark_committee.py # Multi-prompt & messaging topology benchmark for CrewAI + ADK committee
+│
 ├── .github/workflows/
 │   └── market-sync.yml        # Scheduled daily post-close settlement market sync (22:30 UTC Mon-Fri)
 │
 ├── infra/
 │   ├── compose/               # Docker Compose environments (Postgres, Redis, all 10 microservices)
 │   ├── db/                    # Alembic migrations with per-service schema isolation
-│   └── deploy/                # Cloud manifests (Render blueprints, Vercel config, Supabase/Neon setup)
+│   └── deploy/                # Cloud manifests (Render blueprints: render.committee.yaml, Vercel config, Supabase/Neon)
 │
 ├── docs/                      # Architectural Decision Records, API contracts, runbooks, and evaluation
-├── legacy/finmaths/           # Archived read-only reference of the original FinMaths Streamlit prototype
 ├── pyproject.toml             # uv workspace root definition and development dependencies
 ├── justfile                   # Developer task runner (build, test, lint, fmt, deploy)
 └── DISCLAIMER.md              # Mandatory regulatory disclaimers
@@ -91,7 +93,7 @@ Tangent/
 | **quant** | 8002 | SciPy SLSQP Max-Sharpe, Ledoit-Wolf shrinkage, Monte Carlo (10k paths), walk-forward | NumPy, SciPy, Scikit-learn | Cloud Run / Render |
 | **portfolio** | 8003 | Guest profiles, saved allocations, audit trails, CSV/JSON investor exports | FastAPI, SQLAlchemy, PostgreSQL | Cloud Run / Render |
 | **sentiment** | 8004 | Zero-key RSS financial news ingest (Google News, ET), content-hash cache, lexicon | FastAPI, Feedparser, HTTPX | Cloud Run / Render |
-| **agent** | 8005 | EvidencePack extraction (`[E1]`–`[E9]`), Bull/Bear/Synthesizer agents, Critic review | FastAPI, LiteLLM, Groq / Gemini | Cloud Run / Render |
+| **agent** | 8005 | EvidencePack extraction (`[E1]`–`[E9]`), Standardized CrewAI + Google ADK Investment Committee, Critic | FastAPI, CrewAI, Google ADK, LiteLLM | Cloud Run / Render |
 | **persona-macro** | 8006 | Independent MacroBot: sovereign debt, central bank liquidity, inflation cycles | Google Gemini 2.0 Flash (TPU) | Render Free Tier |
 | **persona-growth** | 8007 | Independent GrowthBot: capital compounding, valuation floors, free cash flows | Groq Llama 3.3 70B (LPU) | Render Free Tier |
 | **persona-risk** | 8008 | Independent RiskBot: downside volatility, tail-risk drawdown, hedging constraints | Cloudflare Workers AI Llama 3.2 3B | Render Free Tier |

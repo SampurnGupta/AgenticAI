@@ -1,0 +1,179 @@
+# Render Blueprint for Tangent Standardized Investment Committee (CrewAI + Google ADK)
+# Renamed services to isolate deployment & monitoring from the original Tangent production fleet.
+
+services:
+  # 1. API Gateway (Reverse Proxy, Auth, Rate Limiting)
+  - type: web
+    name: tangent-committee-gateway
+    runtime: docker
+    dockerfilePath: services/gateway/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AGENT_URL
+        value: https://tangent-committee-agent.onrender.com
+      - key: MARKET_DATA_URL
+        value: https://tangent-committee-market-data.onrender.com
+      - key: QUANT_URL
+        value: https://tangent-committee-quant.onrender.com
+      - key: OBSERVATORY_URL
+        value: https://tangent-committee-observatory.onrender.com
+      - key: PERSONA_MACRO_URL
+        value: https://tangent-committee-macro.onrender.com
+      - key: PERSONA_GROWTH_URL
+        value: https://tangent-committee-growth.onrender.com
+      - key: PERSONA_RISK_URL
+        value: https://tangent-committee-risk.onrender.com
+      - key: REDIS_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"
+
+  # 2. Standardized Investment Committee Agent Service (CrewAI + Google ADK)
+  - type: web
+    name: tangent-committee-agent
+    runtime: docker
+    dockerfilePath: services/agent/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: QUANT_SERVICE_URL
+        value: https://tangent-committee-quant.onrender.com
+      - key: MARKET_DATA_SERVICE_URL
+        value: https://tangent-committee-market-data.onrender.com
+      - key: REDIS_URL
+        sync: false
+      - key: LLM_MODE
+        value: live
+      - key: DEMO_MODE
+        value: "false"
+
+  # 3. Deterministic Quant Service (SciPy SLSQP, Monte Carlo, VaR)
+  - type: web
+    name: tangent-committee-quant
+    runtime: docker
+    dockerfilePath: services/quant/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "false"
+
+  # 4. Deterministic Market-Data Service (74 Assets, Ledoit-Wolf, Daily Sync)
+  - type: web
+    name: tangent-committee-market-data
+    runtime: docker
+    dockerfilePath: services/market-data/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"
+
+  # 5. LLM Observatory & MetaBot Telemetry Service
+  - type: web
+    name: tangent-committee-observatory
+    runtime: docker
+    dockerfilePath: services/observatory/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"
+
+  # 6. Independent MacroBot Persona (Gemini 2.0 Flash)
+  - type: web
+    name: tangent-committee-macro
+    runtime: docker
+    dockerfilePath: services/persona-macro/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"
+
+  # 7. Independent GrowthBot Persona (Groq Llama 3.3 70B)
+  - type: web
+    name: tangent-committee-growth
+    runtime: docker
+    dockerfilePath: services/persona-growth/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"
+
+  # 8. Independent RiskBot Persona (Cloudflare Workers AI / Groq Fallback)
+  - type: web
+    name: tangent-committee-risk
+    runtime: docker
+    dockerfilePath: services/persona-risk/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: CLOUDFLARE_API_KEY
+        sync: false
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: DEMO_MODE
+        value: "false"
