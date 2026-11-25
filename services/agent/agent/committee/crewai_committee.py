@@ -36,7 +36,7 @@ def build_crewai_committee(
     """Construct the 4 CrewAI committee agents (Valuation, Growth, Risk, Arbiter)."""
     key = gemini_api_key or os.getenv("GEMINI_API_KEY", "mock-key")
     llm = LLM(
-        model="gemini/gemini-2.0-flash",
+        model="gemini/gemini-flash-lite-latest",
         api_key=key,
         temperature=0.25,
     )

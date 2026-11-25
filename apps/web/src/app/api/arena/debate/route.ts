@@ -392,7 +392,7 @@ CRITICAL RULES:
           weights,
           selectedTickers,
         }),
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(28000),
       });
 
       if (committeeRes.ok) {

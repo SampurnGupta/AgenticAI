@@ -45,7 +45,7 @@ class ADKMacroAgent:
         if self.client:
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.0-flash",
+                    model="gemini-flash-lite-latest",
                     contents=user_content,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,

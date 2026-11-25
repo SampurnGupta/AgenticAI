@@ -90,13 +90,19 @@ class CommitteeCoordinator:
                 output_pydantic=CommitteeCrewOutputSchema,
             )
 
-            crew = Crew(
-                agents=[valuation_agent, growth_agent, risk_agent, arbiter_agent],
-                tasks=[valuation_task, growth_task, risk_task, arbiter_task],
-                process=Process.sequential,
-                verbose=False,
-            )
-            result = await asyncio.wait_for(asyncio.to_thread(crew.kickoff), timeout=15.0)
+            # Prevent crewai_core's internal SQLite lock_store from calling PUBSUB NUMSUB on Upstash Redis
+            saved_redis_url = os.environ.pop("REDIS_URL", None)
+            try:
+                crew = Crew(
+                    agents=[valuation_agent, growth_agent, risk_agent, arbiter_agent],
+                    tasks=[valuation_task, growth_task, risk_task, arbiter_task],
+                    process=Process.sequential,
+                    verbose=False,
+                )
+                result = await asyncio.wait_for(asyncio.to_thread(crew.kickoff), timeout=25.0)
+            finally:
+                if saved_redis_url is not None:
+                    os.environ["REDIS_URL"] = saved_redis_url
             pydantic_out = getattr(result, "pydantic", None)
             if isinstance(pydantic_out, CommitteeCrewOutputSchema):
                 return pydantic_out
